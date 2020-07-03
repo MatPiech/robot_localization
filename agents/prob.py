@@ -58,6 +58,44 @@ class LocAgent:
 
         return action
 
+
+    def movementFactor(self):
+        self.movement_factors = np.zeros((len(self.locations), len(self.locations)), dtype=np.float)
+        for i in range(len(self.locations)):
+            x, y = self.locations[i]
+            new_points = {'N': (x, y+1), 'E': (x+1, y), 'S': (x, y-1), 'W': (x-1, y)}
+
+            if self.prev_action == 'turnleft':
+                pass
+            elif self.prev_action == 'turnright':
+                pass
+            elif self.prev_action == 'forward':
+                new_point = new_points['N']
+
+                if new_point in self.locations:
+                    self.movement_factors[i,i] = 0.05
+                    self.movement_factors[i,self.locations.index(new_point)] = 0.95
+            else:
+                self.movement_factors[i,i] = 1
+
+
+    def sensorFactor(self, percept):
+        self.sensor_factors = np.zeros((len(self.locations)), dtype=np.float)
+        for i in range(len(self.locations)):
+            x, y = self.locations[i]
+            new_point = {'forward': (x, y+1), 'right': (x+1, y), 'left': (x, y-1), 'backward': (x-1, y)}
+            for point_key, point_val in new_point.items():
+                if point_val in self.locations and point_key not in percept:
+                    factor = 0.9
+                elif point_val not in self.locations and point_key in percept:
+                    factor = 0.9
+                elif point_val in self.locations and point_key in percept:
+                    factor = 0.1
+                elif point_val not in self.locations and point_key not in percept:
+                    factor = 0.1
+
+            self.sensor_factors[i] = factor
+
     def getPosterior(self):
         # directions in order 'N', 'E', 'S', 'W'
         P_arr = np.zeros([self.size, self.size, 4], dtype=np.float)
