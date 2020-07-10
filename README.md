@@ -1,9 +1,22 @@
 # Localization project 
-Projekt bazuje na zadaniu 7, w którym trzeba było obliczyć rozkład prawdopodobieństwa lokalizacji robota. Tym razem jednak nie jest znana orientacja robota, którą także trzeba uwzględnić w obliczeniach. Założenia rozpatrywanego świata:
-- Robot nie zawsze poprawnie wykonuje manewr obracania i jazdy do przodu. Istnieje szansa ϵm=0.05, że robot pozostanie w tym samym miejscu w przypadku, gdy ostatnią komendą było forward lub się nie obróci w przypadku, gdy ostatnią komendą było turnleft lub turnright.
-- Czujniki robota zwracają listę kierunków względem robota, w których zostały wykryte przeszkody, np. ['fwd', 'right'] oznacza, że przeszkody zostały wykryte na wprost i na prawo od robota (patrząc w aktualnym kierunku robota). Niestety, czujniki te nie są perfekcyjne i czasami zwracają błędne pomiary. Istnieje szansa ϵs=0.1, że sensor zwróci błędny pomiar, tzn. wykryje obecność przeszkody, jeśli jej tam nie ma lub nie wykryje przeszkody mimo jej obecności.
-- Możesz także wykorzystać wartość bump otrzymaną w zmiennej percept, żeby poprawić dokładność lokalizacji.
+Project of calculating probability distribution of robot localization having unknown robot's orientation.
 
-## Tasks
-- Napisanie kodu odpowiedzialnego za obliczanie rozkładu lokalizacji robota.
-- Modyfikacja heurystyki poruszającej robotem, aby jak najbardziej przyspieszyć zbieżność algorytmu. Robot powinien wybierać takie akcje, które dostarczą mu jak najwięcej informacji.
+Polish language version of documentation - [README_PL.md](./README_FILES/README_PL.md)
+
+**Environment assumptions:**
+- Robot doesn't always correctly perform the maneuver of turning and driving forward. It is possible, with factor **ϵm=0.05**, that robot:
+    - stay in the same place when the last action was *forward* 
+    - doesn't turn if the last action was *turnleft* or *turnright*.
+- Robot's sensor return list of directions relative to the robot in which obstacles have been detected e.g. ['fwd', 'right'] which means that obstacles have been detected straight ahead and to the right of the robot according to the current robot orientation. Sensors aren't perfect and can give incorrect measurement with factor **ϵs=0.1**:
+  - sensor detect obstacle even though it is not there 
+  - sensor doesn't detect obstacle even though it is there 
+- Value *bump* in percept list of sensor can improve accuracy of localization.
+
+**Tasks**
+- Implement functions to calculate probability distribution of robot localization.
+- Modification of robot motion heuristics to accelerate algorithm convergence. Robot should choose actions which give him most information.
+
+## Robot localization
+![5 first steps](./README_FILES/steps_image.png)
+
+## Heuristics
