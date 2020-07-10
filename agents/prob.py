@@ -32,90 +32,27 @@ class LocAgent:
         self.eps_perc = eps_perc
         self.eps_move = eps_move
 
+        self.dirs = ['N', 'E', 'S', 'W']
+
+        self.dirs_len = len(self.dirs)
+        self.loc_len = len(self.locations)
+
         # previous action
         self.prev_action = None
 
-        prob = 1.0 / (len(self.locations) * 4)
-        self.P = prob * np.ones((len(self.locations), 4), dtype=np.float)
-
-
-    def movementFactor(self, percept):
-        movement_factors = np.zeros((len(self.locations), len(self.locations), 4), dtype=np.float)
-        for i in range(len(self.locations)):
-            x, y = self.locations[i]
-            new_points = {'N': (x, y+1), 'E': (x+1, y), 'S': (x, y-1), 'W': (x-1, y)}
-
-            # if self.prev_action == 'turnleft':
-            #     for idx, dir in enumerate(new_points.keys()):
-            #         new_point = new_points[dir]
-
-            #         if new_point in self.locations:
-            #             movement_factors[i,i, idx] = 0.05
-            #             movement_factors[i,self.locations.index(new_point), idx] = 0.95
-            # elif self.prev_action == 'turnright':
-            #     for idx, dir in enumerate(new_points.keys()):
-            #         new_point = new_points[dir]
-
-            #         if new_point in self.locations:
-            #             movement_factors[i,i, idx] = 0.05
-            #             movement_factors[i,self.locations.index(new_point), idx] = 0.95
-            if 'bump' in percept:
-                movement_factors[i,i] = [1,1,1,1]
-            elif self.prev_action == 'turnleft' or self.prev_action == 'turnright' or self.prev_action == None:
-                movement_factors[i,i] = [1,1,1,1]
-            elif self.prev_action == 'forward':
-                for idx, new_point in enumerate(new_points.values()):
-
-                    if new_point in self.locations:
-                        movement_factors[i,i, idx] = 0.05
-                        movement_factors[i,self.locations.index(new_point), idx] = 0.95
-                    else:
-                        movement_factors[i,i] = 1
-            else:
-                movement_factors[i,i] = [1,1,1,1]
-
-        return movement_factors
-
-
-    def sensorFactor(self, percept):
-        sensor_factors = np.ones((len(self.locations), 4), dtype=np.float)
-        sensor_available_percepts = ['fwd', 'right', 'bckwd', 'left']
-        for dir in range(len(sensor_available_percepts)):
-            for idx, loc in enumerate(self.locations):
-                x, y = loc
-                new_points = [(x, y+1), (x+1, y), (x, y-1), (x-1, y)]
-                percepts_points = dict(zip(sensor_available_percepts, np.roll(new_points, -dir)))
-                for point_key, point_val in percepts_points.items():
-                    point_val = list(point_val)
-                    if point_val in self.locations and point_key not in percept:
-                        sensor_factors[idx, dir] *= 0.9
-                    elif point_val not in self.locations and point_key in percept:
-                        sensor_factors[idx, dir] *= 0.9
-                    elif point_val in self.locations and point_key in percept:
-                        sensor_factors[idx, dir] *= 0.1
-                    elif point_val not in self.locations and point_key not in percept:
-                        sensor_factors[idx, dir] *= 0.1
-
-        return sensor_factors
+        prob = 1.0 / (self.loc_len * self.dirs_len)
+        self.P = prob * np.ones((self.loc_len * self.dirs_len), dtype=np.float)
 
 
     def __call__(self, percept):
         # update posterior
         # TODO PUT YOUR CODE HERE
-        
-        movement_factors = self.movementFactor(percept)
-        
-        sensor_factors = self.sensorFactor(percept)
 
-        stacked_movement_factors = np.stack([np.dot(movement_factors[:,:,i].T, self.P[:,i]) for i in range(4)]).T
+        sensor_factors = self.sensor_factor(percept)
+        movement_factors = self.movement_factor(percept)
 
-        #print(movement_factors.shape, sensor_factors.shape, self.P.shape, np.dot(movement_factors.T, self.P).shape)
-
-        #self.P = np.multiply(sensor_factors, np.dot(movement_factors.T, self.P))
-        self.P = np.multiply(sensor_factors, stacked_movement_factors)
-        self.P = self.P / self.P.sum(keepdims=True)
-        print(self.P)
-        print(np.max(self.P))
+        self.P = np.multiply(sensor_factors, np.dot(movement_factors, self.P))
+        self.P = self.P / self.P.sum(keepdims=1)
 
         # -----------------------
 
@@ -134,15 +71,100 @@ class LocAgent:
         return action
 
 
+    def sensor_factor(self, percept: list) -> np.ndarray:
+        """Method to calculate robot sensor factor.
+
+        Parameters
+        ----------
+        percept : list
+            Robot sensor measurements.
+
+        Returns
+        -------
+        np.ndarray
+            Sensor factor.
+        """
+        sensor_factors = np.ones((self.loc_len * self.dirs_len))
+        available_percepts = ['fwd', 'right', 'bckwd', 'left']
+
+        for idx, loc in enumerate(self.locations):
+            x, y = loc
+            new_locs = {'N': (x, y+1), 'E': (x+1, y), 'S': (x, y-1), 'W': (x-1, y)}
+
+            for dir_idx in range(self.dirs_len): 
+                new_orientations = np.roll(list(new_locs.keys()), -dir_idx)
+                percept_dirs = [new_orientations[available_percepts.index(p)] for p in percept]
+
+                for dir in self.dirs:
+                    new_loc = new_locs[dir]
+
+                    if dir in percept_dirs:
+                        if new_loc in self.locations:
+                            sensor_factors[idx * self.dirs_len + dir_idx] *= 0.1
+                        else:
+                            sensor_factors[idx * self.dirs_len + dir_idx] *= 0.9
+                    else:
+                        if new_loc in self.locations:
+                            sensor_factors[idx * self.dirs_len + dir_idx] *= 0.9
+                        else:
+                            sensor_factors[idx * self.dirs_len + dir_idx] *= 0.1
+
+        return sensor_factors
+
+
+    def movement_factor(self, percept: list) -> np.ndarray:
+        """Method to calculate robot movement factor.
+
+        Parameters
+        ----------
+        percept : list
+            Robot sensor measurements.
+
+        Returns
+        -------
+        np.ndarray
+            Movement factor.
+        """
+        movement_factors = np.zeros((self.loc_len * self.dirs_len, self.loc_len * self.dirs_len))
+
+        for idx, loc in enumerate(self.locations):
+            x, y = loc
+            new_locs = {'N': (x, y+1), 'E': (x+1, y), 'S': (x, y-1), 'W': (x-1, y)}
+
+            for dir_idx, dir in enumerate(self.dirs):
+                if 'bump' in percept or self.prev_action == None:
+                    movement_factors[idx * self.dirs_len + dir_idx, idx * self.dirs_len + dir_idx] = 1.0
+                if self.prev_action == 'forward':
+                    new_loc = new_locs[dir]
+                    if new_loc in self.locations:
+                        new_idx = self.loc_to_idx[new_loc]
+                        movement_factors[idx * self.dirs_len + dir_idx, idx * self.dirs_len + dir_idx] = 0.05
+                        movement_factors[new_idx * self.dirs_len + dir_idx, idx * self.dirs_len + dir_idx] = 0.95
+                    else:
+                        movement_factors[idx * self.dirs_len + dir_idx, idx * self.dirs_len + dir_idx] = 1.0                        
+                elif self.prev_action == 'turnleft':
+                    _, left_dir = self.turnleft(loc, dir)
+                    left_dir = self.dirs.index(left_dir)
+                    movement_factors[idx * self.dirs_len + dir_idx, idx * self.dirs_len + dir_idx] = 0.05
+                    movement_factors[idx * self.dirs_len + left_dir, idx * self.dirs_len + dir_idx] = 0.95
+                elif self.prev_action == 'turnright':
+                    _, right_dir = self.turnright(loc, dir)
+                    right_dir = self.dirs.index(right_dir)
+                    movement_factors[idx * self.dirs_len + dir_idx, idx * self.dirs_len + dir_idx] = 0.05
+                    movement_factors[idx * self.dirs_len + right_dir, idx * self.dirs_len + dir_idx] = 0.95
+
+        return movement_factors
+
+
     def getPosterior(self):
         # directions in order 'N', 'E', 'S', 'W'
         P_arr = np.zeros([self.size, self.size, 4], dtype=np.float)
 
         # put probabilities in the array
         # TODO PUT YOUR CODE HERE
-        for dir in range(4):
+        for dir in range(self.dirs_len):
             for idx, loc in enumerate(self.locations):
-                P_arr[loc[0], loc[1], dir] = self.P[idx, dir]
+                P_arr[loc[0], loc[1], dir] = self.P[idx * self.dirs_len + dir]
 
         # -----------------------
 
