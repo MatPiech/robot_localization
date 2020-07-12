@@ -34,3 +34,7 @@ For each heuristics' step was calculated value of entropy what is show in groupe
 ![Used heuristics plots](./README_FILES/40_steps_entropy.png)
 
 Both right hand and next move distribution heuristics gives the same results for first 40 samples and are better than initial heuristics. Next move distribution heuristics let to choose movement which can maximize robot percepts and minimalize entropy of robot localization probability distribution.
+
+**Next Move Distribution Heuristics Pseudocode**
+<br/>
+![NMD pseudocode](./README_FILES/pseudocode.png)

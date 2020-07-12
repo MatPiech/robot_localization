@@ -28,3 +28,7 @@ Dla każdej heurystyki i dla każdego ruchu wyliczona została wartość entropi
 ![Used heuristics plots](./40_steps_entropy.png)
 
 Zarówno heurystyka prawej dłoni, jak i dystrybucji następnego ruchu dają takie same rezultaty dla pierwszych 40 próbek i są one lepsze niż przy wykorzystaniu początkowej heurystyki. Heurystyka dystrybucji następnego ruchu pozwala na wybór akcji, która maksymalizuje percepcje robota i minimalizuje entopii rozkładu dystrybucji prawdopodobieństwa lokalizacji robota.
+
+**Next Move Distribution Heuristics Pseudocode**
+<br/>
+![NMD pseudocode](./pseudocode.png)
