@@ -66,11 +66,12 @@ class LocAgent:
         print(f'Entropy: {round(entr, 5)}')
         self.steps_entropy.append(entr)
 
-        np.save('heuristics_entropy/initial_heuristics.npy', self.steps_entropy)
+        np.save('heuristics_entropy/next_move_heuristics.npy', self.steps_entropy)
 
-        action = self.initial_heuristics(percept)
+        #action = self.initial_heuristics(percept)
         #action = self.right_left_hand_heuristics(percept, hand='turnright')
         #action = self.right_left_hand_heuristics(percept, hand='turnleft')
+        action = self.next_move_heuristics(percept)
 
         self.prev_action = action
 
@@ -121,6 +122,35 @@ class LocAgent:
         else:
             action = 'forward'
 
+        return action
+
+
+    def next_move_heuristics(self, percept: list) -> str:
+        """Robot heuristics based on calculating new distribution for possible next moves.
+
+        Parameters
+        ----------
+        percept : list
+            Robot sensor measurements.
+
+        Returns
+        -------
+        str
+            Robot next move.
+        """
+        next_move_distribution = self.movement_factor(percept)
+        forward = [next_move_distribution[i] for i in range(0, len(next_move_distribution), 4)]
+        right = [next_move_distribution[i+1] for i in range(0, len(next_move_distribution), 4)]
+        left = [next_move_distribution[i+3] for i in range(0, len(next_move_distribution), 4)]
+
+        actions = dict(zip(['turnleft', 'turnright', 'forward'], [np.max(left), np.max(right), np.max(forward)]))
+        
+        sorted_actions = sorted(['turnleft', 'turnright', 'forward'], key=actions.get)
+        if 'fwd' in percept:
+            sorted_actions.remove('forward')
+
+        action = sorted_actions[-1]
+        
         return action
 
 

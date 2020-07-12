@@ -24,10 +24,13 @@ Polish language version of documentation - [README_PL.md](./README_FILES/README_
 
 ## Heuristics
 To choose next robot's move was tested several heuristics:
-- initial 
-- right hand
-- left hand
+- initial - base on random choice of possible next action
+- right hand - base on moving forward and turn right if moving forward is impossible
+- left hand - base on moving forward and turn left if moving forward is impossible
+- next move distribution - base on calculating distribution of next movement using movement factor with current percept and choosing the best and possible action
 
 For each heuristics' step was calculated value of entropy what is show in grouped plot below.
 
 ![Used heuristics plots](./README_FILES/40_steps_entropy.png)
+
+Both right hand and next move distribution heuristics gives the same results for first 40 samples and are better than initial heuristics. Next move distribution heuristics let to choose movement which can maximize robot percepts and minimalize entropy of robot localization probability distribution.

@@ -18,10 +18,13 @@ Projekt bazuje na obliczeniu rozkładu prawdopodobieństwa lokalizacji robota uw
 
 ## Heurystyki
 Do wybrania następnego ruchu robota zostały przetestowane następujące heurystyki:
-- początkowa 
-- prawej dłoni
-- lewej dłoni
+- początkowa - bazuje na losowym wyborze możliwego ruchu
+- prawej dłoni - bazuje na ruchu na wprost i obrocie w prawo jeśli nie jest on dostępny
+- lewej dłoni - bazuje na ruchu na wprost i obrocie w lewo jeśli nie jest on dostępny
+- dystrybucja następnego ruchu - bazuje na obliczeniu rozkładu dystrybucji następnych ruchów przy wykorzystaniu czynnika ruchu z wykorzystaniem aktualnej wrtości *percept* z sensora i wybraniu najlepszej możliwej akcji
 
 Dla każdej heurystyki i dla każdego ruchu wyliczona została wartość entropii. Zbiorczy wykres wartości entropii dla każdej z heurystyk został przedstawiony poniżej.
 
 ![Used heuristics plots](./40_steps_entropy.png)
+
+Zarówno heurystyka prawej dłoni, jak i dystrybucji następnego ruchu dają takie same rezultaty dla pierwszych 40 próbek i są one lepsze niż przy wykorzystaniu początkowej heurystyki. Heurystyka dystrybucji następnego ruchu pozwala na wybór akcji, która maksymalizuje percepcje robota i minimalizuje entopii rozkładu dystrybucji prawdopodobieństwa lokalizacji robota.
