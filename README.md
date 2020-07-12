@@ -1,6 +1,9 @@
 # Localization project 
 Project of calculating probability distribution of robot localization having unknown robot's orientation.
 
+1. [Robot localization](#robot-localization)
+2. [Heuristics](#heuristics)
+
 Polish language version of documentation - [README_PL.md](./README_FILES/README_PL.md)
 
 **Environment assumptions:**
@@ -20,3 +23,11 @@ Polish language version of documentation - [README_PL.md](./README_FILES/README_
 ![5 first steps](./README_FILES/steps_image.png)
 
 ## Heuristics
+To choose next robot's move was tested several heuristics:
+- initial 
+- right hand
+- left hand
+
+For each heuristics' step was calculated value of entropy what is show in grouped plot below.
+
+![Used heuristics plots](./README_FILES/40_steps_entropy.png)

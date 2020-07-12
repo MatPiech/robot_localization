@@ -3,6 +3,7 @@
 
 import random
 import numpy as np
+from scipy.stats import entropy
 
 from gridutil import *
 
@@ -37,6 +38,8 @@ class LocAgent:
         self.dirs_len = len(self.dirs)
         self.loc_len = len(self.locations)
 
+        self.steps_entropy = []
+
         # previous action
         self.prev_action = None
 
@@ -58,6 +61,35 @@ class LocAgent:
 
         action = 'forward'
         # TODO CHANGE THIS HEURISTICS TO SPEED UP CONVERGENCE
+
+        entr = entropy(self.P, base=2)
+        print(f'Entropy: {round(entr, 5)}')
+        self.steps_entropy.append(entr)
+
+        np.save('heuristics_entropy/initial_heuristics.npy', self.steps_entropy)
+
+        action = self.initial_heuristics(percept)
+        #action = self.right_left_hand_heuristics(percept, hand='turnright')
+        #action = self.right_left_hand_heuristics(percept, hand='turnleft')
+
+        self.prev_action = action
+
+        return action
+
+    
+    def initial_heuristics(self, percept: list) -> str:
+        """Initial robot heuristics.
+
+        Parameters
+        ----------
+        percept : list
+            Robot sensor measurements.
+
+        Returns
+        -------
+        str
+            Robot next move.
+        """
         # if there is a wall ahead then lets turn
         if 'fwd' in percept:
             # higher chance of turning left to avoid getting stuck in one location
@@ -66,7 +98,28 @@ class LocAgent:
             # prefer moving forward to explore
             action = np.random.choice(['forward', 'turnleft', 'turnright'], 1, p=[0.8, 0.1, 0.1])
 
-        self.prev_action = action
+        return action
+
+    
+    def right_left_hand_heuristics(self, percept: list, hand_action: str='turnright') -> str:
+        """Right or left hand robot motion heuristics.
+
+        Parameters
+        ----------
+        percept : list
+            Robot sensor measurements.
+        hand_action : str, optional
+            Type of action if forward is obstacle, possible options: {turnright, turnleft}, by default 'turnright'
+
+        Returns
+        -------
+        str
+            Robot next move.
+        """
+        if 'fwd' in percept:
+            action = hand_action
+        else:
+            action = 'forward'
 
         return action
 
@@ -93,7 +146,7 @@ class LocAgent:
 
             for dir_idx in range(self.dirs_len): 
                 new_orientations = np.roll(list(new_locs.keys()), -dir_idx)
-                percept_dirs = [new_orientations[available_percepts.index(p)] for p in percept]
+                percept_dirs = [new_orientations[available_percepts.index(p)] for p in percept if p != 'bump']
 
                 for dir in self.dirs:
                     new_loc = new_locs[dir]
