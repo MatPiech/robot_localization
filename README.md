@@ -6,6 +6,8 @@ Project of calculating probability distribution of robot localization having unk
 
 Polish language version of documentation - [README_PL.md](./README_FILES/README_PL.md)
 
+Template project [repository](https://github.com/jwietrzykowski/proj_lokalizacja).
+
 **Environment assumptions:**
 - Robot doesn't always correctly perform the maneuver of turning and driving forward. It is possible, with factor **ϵm=0.05**, that robot:
     - stay in the same place when the last action was *forward* 
